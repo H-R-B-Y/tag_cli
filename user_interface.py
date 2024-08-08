@@ -4,9 +4,9 @@ import curses, os
 
 # This needs to be documented better please!!!!!!!!!!!!
 
-TAG_LOCATION = os.path.expanduser("~/Tags/")
+TAG_LOCATION = os.path.expanduser(os.environ["TAGS_DIR"]) + "/"
 CLAMP = lambda x, min, max: (min if x < min else (max if x > max else x))
-OUTPUTFILE = os.path.expanduser("~/Documents/tag_cli/navto") # This hard coding needs to be removed at some point lacks portability
+OUTPUTFILE = os.path.expanduser(os.environ["SCRIPT_DIR"]) + "/navto" # This hard coding needs to be removed at some point lacks portability
 # installation script should populate the hard coded values with correct locations!
 
 
@@ -47,7 +47,7 @@ class twoColumn:
 		self.load_contents(self.tags[0])
 		self.init_windows() 
 		self.context_bar.attron(curses.color_pair(2))
-		self.update_context_bar("n: new tag  |  del: delete a Tag or untag a file/folder")
+		self.update_context_bar("n: new tag  |  del: delete a Tag or untag a file/folder  |  q: quit")
 		self.context_bar.attroff(curses.color_pair(2))
 
 	@property

@@ -9,10 +9,10 @@ Wrapper function to be sourced in shell rc file so that cd is run in the current
 - Allow lists longer than the row count!!!!!
 - ~~Ability to add tags through the UI.~~
 - ~~Ability to untag items through the UI.~~
-- Remove hard coded links
+- ~~Remove hard coded links~~ (It is still hard coded but using a single source!)
 - Figure out how to allow spaces in tag names in conjunction with the tab completion (a space in a tags name gets split into multiple completion targets T-T)
 
 ## Setup:
 - Create Tags folder in `$HOME`
 - Source wrapper.sh in `.{insert shell name here}rc`
-- Update hard coded links if needed 
+- Update the `$SCRIPT_DIR` in wrapper.sh to reflect where tag_cli is installed!
