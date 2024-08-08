@@ -1,12 +1,13 @@
 #! /usr/bin/python3
 import curses, os
 
-import time
+
+# This needs to be documented better please!!!!!!!!!!!!
 
 TAG_LOCATION = os.path.expanduser("~/Tags/")
 CLAMP = lambda x, min, max: (min if x < min else (max if x > max else x))
-
-OUTPUTFILE = os.path.expanduser("~/Documents/tag_cli/navto")
+OUTPUTFILE = os.path.expanduser("~/Documents/tag_cli/navto") # This hard coding needs to be removed at some point lacks portability
+# installation script should populate the hard coded values with correct locations!
 
 class twoColumn:
 	def __init__ (self, stdscr):
@@ -60,9 +61,6 @@ class twoColumn:
 		self.context_bar = curses.newwin(1, self.width, self.height-1, 0)
 		self.left_win.box()
 		self.right_win.box()
-		self.left_win.refresh()
-		self.right_win.refresh()
-		self.context_bar.refresh()
 		self.stdscr.refresh()
 
 	# handle scrolling eventually
@@ -70,8 +68,12 @@ class twoColumn:
 		self.left_win.clear()
 		self.right_win.clear()
 		self.context_bar.clear()
+		self.left_win.attron(curses.color_pair(5))
 		self.left_win.box()
+		self.left_win.attroff(curses.color_pair(5))
+		self.right_win.attron(curses.color_pair(6))
 		self.right_win.box()
+		self.right_win.attroff(curses.color_pair(6))
 		pad = 1
 		i = 0
 		for tag in self.tags:
@@ -83,12 +85,18 @@ class twoColumn:
 		i = 0
 		for directory in self.directories:
 			self.right_win.addstr(pad+i, pad+0, directory + "/", (1 if not [i, 1] == self.cursor else curses.color_pair(4)))
+			if ([i, 1] == self.cursor):
+				p = os.path.realpath(TAG_LOCATION+self.tags[self.cursor_swap[0]]+"/"+directory+"/")+"/"
+				self.context_bar.addstr(0, 0, p)
 			i += 1
 		i += 1
 		for file in self.files:
-			self.right_win.addstr(pad+i, pad+0, file, (1 if not [i, 1] == self.cursor else curses.color_pair(4)))
+			self.right_win.addstr(pad+i, pad+0, file, (1 if not [i-1, 1] == self.cursor else curses.color_pair(4)))
+			if ([i-1, 1] == self.cursor):
+				p = os.path.dirname(os.path.realpath(TAG_LOCATION+self.tags[self.cursor_swap[0]]+"/"+file))+"/"
+				self.context_bar.addstr(0, 0, p)
 			i += 1
-		self.context_bar.addstr(0, 0, f"SIZE:{[len(self.tags), len(self.directories) + len(self.files)]}       Cursor:{self.cursor}")
+
 		self.left_win.refresh()
 		self.right_win.refresh()
 		self.context_bar.refresh()
@@ -104,6 +112,19 @@ class twoColumn:
 		elif (direction == curses.KEY_DOWN):
 			self.cursor[0] = CLAMP(self.cursor[0]+1, 0, ([len(self.tags), len(self.directories) + len(self.files)][self.cursor[1]])-1)
 
+	def enter_action (self):
+		output = ""
+		if (self.cursor[1] == 0):
+			return self.navigation(curses.KEY_RIGHT)
+		if (self.cursor[0] < len(self.directories)):
+			output = TAG_LOCATION + self.tags[self.cursor_swap[0]] + "/" + self.directories[self.cursor[0]]
+		elif (self.cursor[0] - len(self.directories) < len(self.files)):
+			output = TAG_LOCATION + self.tags[self.cursor_swap[0]] + "/" + self.files[self.cursor[0] - len(self.directories)]
+			output = os.path.dirname(os.path.realpath(output))
+		with open(OUTPUTFILE, "w+") as f:
+			f.write(output)
+		self.kill_switch = True
+
 	def handle_key (self):
 		global OUTPUTFILE
 		self.left_win.refresh()
@@ -114,15 +135,13 @@ class twoColumn:
 			curses.KEY_UP : self.navigation,
 			curses.KEY_DOWN : self.navigation,
 			curses.KEY_LEFT : self.navigation,
-			curses.KEY_RIGHT : self.navigation
+			curses.KEY_RIGHT : self.navigation,
+			curses.KEY_ENTER : lambda x: self.enter_action(),
+			10 : lambda x: self.enter_action(),
+			ord("q") : lambda x: setattr(self, "kill_switch", True)
 		}
 		if (key_event in events.keys()):
 			events[key_event](key_event)
-		elif ((key_event == curses.KEY_ENTER or key_event == 10) and self.cursor[1] == 1):
-			if (self.cursor[0] < len(self.directories)):
-				with open(OUTPUTFILE, "w+") as f:
-					f.write(TAG_LOCATION + self.tags[self.cursor_swap[0]] +"/"+ self.directories[self.cursor[0]])
-				self.kill_switch = True
 
 	def mainloop (self):
 		self.draw_windows()
@@ -138,11 +157,12 @@ def main (thingy):
 	window.mainloop()
 	curses.endwin()
 
-try:
-	main(curses.initscr())
-except KeyboardInterrupt as e:
+if __name__ == "__main__":
 	try:
-		curses.endwin()
-	except Exception:
-		pass
-	exit()
+		main(curses.initscr())
+	except KeyboardInterrupt as e:
+		try:
+			curses.endwin()
+		except Exception:
+			pass
+		exit()
