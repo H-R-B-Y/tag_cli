@@ -9,7 +9,15 @@ CLAMP = lambda x, min, max: (min if x < min else (max if x > max else x))
 OUTPUTFILE = os.path.expanduser("~/Documents/tag_cli/navto") # This hard coding needs to be removed at some point lacks portability
 # installation script should populate the hard coded values with correct locations!
 
+
 class twoColumn:
+
+	class modes:
+		_modes = [0, 1, 2]
+		navigate = 0
+		append = 1
+		delete = 2
+
 	def __init__ (self, stdscr):
 		self.stdscr = stdscr
 		self.height, self.width = self.stdscr.getmaxyx()
@@ -26,6 +34,8 @@ class twoColumn:
 		self.directories = []
 		self.files = []
 
+		self._mode = self.modes.navigate
+
 		self.cursor = [0,0]
 		self.cursor_swap = [0,0]
 
@@ -35,7 +45,31 @@ class twoColumn:
 		self.init_colors()
 		self.load_contents(self.tags[0])
 		self.init_windows() 
-		
+		self.update_context_bar("n: new tag  |  del: delete a Tag or untag a file/folder")
+
+	@property
+	def mode (self):
+		return self._mode
+
+	@mode.setter
+	def mode (self, newMode):
+		assert newMode in self.modes._modes
+		if (newMode == self.modes.append):
+			curses.curs_set(1)
+			curses.nocbreak()
+			curses.echo()
+			self.stdscr.keypad(False)
+		elif (newMode == self.modes.navigate):
+			curses.curs_set(0)
+			curses.cbreak()
+			curses.noecho()
+			self.stdscr.keypad(True)
+		elif (newMode == self.modes.delete):
+			curses.curs_set(1)
+			curses.nocbreak()
+			curses.echo()
+			self.stdscr.keypad(False)
+		self._mode = newMode
 
 	def init_colors(self):
 			# Initialize the default color settings
@@ -63,11 +97,15 @@ class twoColumn:
 		self.right_win.box()
 		self.stdscr.refresh()
 
+	def update_context_bar (self, text):
+		self.context_bar.clear()
+		self.context_bar.addstr(0,0, text)
+		self.context_bar.refresh()
+
 	# handle scrolling eventually
 	def draw_windows (self):
 		self.left_win.clear()
 		self.right_win.clear()
-		self.context_bar.clear()
 		self.left_win.attron(curses.color_pair(5))
 		self.left_win.box()
 		self.left_win.attroff(curses.color_pair(5))
@@ -87,23 +125,23 @@ class twoColumn:
 			self.right_win.addstr(pad+i, pad+0, directory + "/", (1 if not [i, 1] == self.cursor else curses.color_pair(4)))
 			if ([i, 1] == self.cursor):
 				p = os.path.realpath(TAG_LOCATION+self.tags[self.cursor_swap[0]]+"/"+directory+"/")+"/"
-				self.context_bar.addstr(0, 0, p)
+				self.update_context_bar(p)
 			i += 1
 		i += 1
 		for file in self.files:
 			self.right_win.addstr(pad+i, pad+0, file, (1 if not [i-1, 1] == self.cursor else curses.color_pair(4)))
 			if ([i-1, 1] == self.cursor):
 				p = os.path.dirname(os.path.realpath(TAG_LOCATION+self.tags[self.cursor_swap[0]]+"/"+file))+"/"
-				self.context_bar.addstr(0, 0, p)
+				self.update_context_bar(p)
 			i += 1
 
 		self.left_win.refresh()
 		self.right_win.refresh()
-		self.context_bar.refresh()
 
 	def navigation (self, direction):
 		if (direction == curses.KEY_LEFT and self.cursor[1] != 0):
 			self.cursor = self.cursor_swap
+			self.update_context_bar("")
 		elif (direction == curses.KEY_RIGHT and self.cursor[1] != 1 and (len(self.directories) + len(self.files)) != 0): # This can be used to implement sub directories later
 			self.cursor_swap = self.cursor
 			self.cursor = [0, 1]
@@ -125,6 +163,60 @@ class twoColumn:
 			f.write(output)
 		self.kill_switch = True
 
+	def append_tag (self):
+		self.mode = self.modes.append
+
+		self.update_context_bar("Please enter name of tag: ")
+		tagname = self.context_bar.getstr().decode("utf-8")
+
+		self.update_context_bar("Validating tagname")
+		if (tagname in self.tags):
+			self.update_context_bar("Tag already exists")
+		elif (" " in tagname):
+			self.update_context_bar("Tag cannot (yet) contain spaces")
+		else:
+			os.mkdir(TAG_LOCATION+tagname)
+			self.init_tags()
+			self.update_context_bar(f"Created new Tag: {tagname}")
+
+		self.mode = self.modes.navigate
+
+	def delete_action (self):
+		self.mode = self.modes.delete
+		if (self.cursor[1] == 0):
+			selected = self.tags[self.cursor[0]]
+			self.update_context_bar(f"Are you sure you want to delete the tag {selected}? (y/n) : ")
+			response = self.context_bar.getstr().decode("utf-8")
+			if (not response in ["y","Y","Yes","yes"]):
+				self.update_context_bar("Tag was not deleted.")
+			else:
+				selected_path = TAG_LOCATION + selected
+				if (len(self.directories)):
+					[os.remove(selected_path+"/"+x) for x in self.directories]
+				if (len(self.files)):
+					[os.remove(selected_path+"/"+x) for x in self.files]
+				os.rmdir(selected_path)
+				self.init_tags()
+				self.load_contents(self.tags[self.cursor[0]])
+				self.draw_windows()
+				self.update_context_bar(f"Removed Tag {selected}")
+		else:
+			selected = self.directories[self.cursor[0]] if self.cursor[0] < len(self.directories) else self.files[self.cursor[0] - len(self.directories)]
+			self.update_context_bar(f"Are you sure you want to untag {selected}? (y/n) : ")
+			response = self.context_bar.getstr().decode("utf-8")
+			if (response in ["y","Y","Yes","yes"]):
+				selected_path = TAG_LOCATION + self.tags[self.cursor_swap[0]] + "/" + selected
+				os.remove(selected_path)
+				self.load_contents(self.tags[self.cursor_swap[0]])
+				if (len(self.files) + len(self.directories) == 0):
+					self.cursor = self.cursor_swap
+				self.draw_windows()
+				self.update_context_bar(f"{self.tags[self.cursor_swap[0]]} tag was removed from {selected}.")
+			else:
+				self.update_context_bar(f"Tag was not removed from {selected}.")
+		self.mode = self.modes.navigate
+		self.handle_key()
+
 	def handle_key (self):
 		global OUTPUTFILE
 		self.left_win.refresh()
@@ -138,7 +230,9 @@ class twoColumn:
 			curses.KEY_RIGHT : self.navigation,
 			curses.KEY_ENTER : lambda x: self.enter_action(),
 			10 : lambda x: self.enter_action(),
-			ord("q") : lambda x: setattr(self, "kill_switch", True)
+			ord("q") : lambda x: setattr(self, "kill_switch", True),
+			ord("n") : lambda x: self.append_tag(),
+			curses.KEY_DC : lambda x: self.delete_action()
 		}
 		if (key_event in events.keys()):
 			events[key_event](key_event)
