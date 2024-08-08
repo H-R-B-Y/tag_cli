@@ -1,6 +1,6 @@
 #! /usr/bin/python3
-import curses, os
 
+import curses, os
 
 # This needs to be documented better please!!!!!!!!!!!!
 
@@ -17,6 +17,7 @@ class twoColumn:
 		navigate = 0
 		append = 1
 		delete = 2
+
 
 	def __init__ (self, stdscr):
 		self.stdscr = stdscr
@@ -45,7 +46,9 @@ class twoColumn:
 		self.init_colors()
 		self.load_contents(self.tags[0])
 		self.init_windows() 
+		self.context_bar.attron(curses.color_pair(2))
 		self.update_context_bar("n: new tag  |  del: delete a Tag or untag a file/folder")
+		self.context_bar.attroff(curses.color_pair(2))
 
 	@property
 	def mode (self):
@@ -108,28 +111,35 @@ class twoColumn:
 		self.right_win.clear()
 		self.left_win.attron(curses.color_pair(5))
 		self.left_win.box()
+		self.left_win.addstr(0,0, "Tags")
 		self.left_win.attroff(curses.color_pair(5))
 		self.right_win.attron(curses.color_pair(6))
 		self.right_win.box()
+		self.right_win.addstr(0,0, "Files/Folders")
 		self.right_win.attroff(curses.color_pair(6))
 		pad = 1
 		i = 0
 		for tag in self.tags:
-			self.left_win.addstr(pad+i, pad+0, tag + (" >"if ([i,0] == self.cursor_swap and self.cursor[1] == 1) else ""), (1 if not [i, 0] == self.cursor else curses.color_pair(4)))
+			self.left_win.attron(curses.color_pair(6) if not [i, 0] == self.cursor else curses.color_pair(4))
+			self.left_win.addstr(pad+i, pad+0, tag + (" >"if ([i,0] == self.cursor_swap and self.cursor[1] == 1) else ""))
+			self.left_win.attroff(curses.color_pair(6) if not [i, 0] == self.cursor else curses.color_pair(4))
 			if ([i,0] == self.cursor):
 				self.load_contents(tag)
 			i += 1
-	
 		i = 0
 		for directory in self.directories:
-			self.right_win.addstr(pad+i, pad+0, directory + "/", (1 if not [i, 1] == self.cursor else curses.color_pair(4)))
+			self.right_win.attron(curses.color_pair(5) if not [i, 1] == self.cursor else curses.color_pair(4))
+			self.right_win.addstr(pad+i, pad+0, directory + "/")
+			self.right_win.attroff(curses.color_pair(5) if not [i, 1] == self.cursor else curses.color_pair(4))
 			if ([i, 1] == self.cursor):
 				p = os.path.realpath(TAG_LOCATION+self.tags[self.cursor_swap[0]]+"/"+directory+"/")+"/"
 				self.update_context_bar(p)
 			i += 1
 		i += 1
 		for file in self.files:
-			self.right_win.addstr(pad+i, pad+0, file, (1 if not [i-1, 1] == self.cursor else curses.color_pair(4)))
+			self.right_win.attron(curses.color_pair(5) if not [i-1, 1] == self.cursor else curses.color_pair(4))
+			self.right_win.addstr(pad+i, pad+0, file)
+			self.right_win.attroff(curses.color_pair(5) if not [i-1, 1] == self.cursor else curses.color_pair(4))
 			if ([i-1, 1] == self.cursor):
 				p = os.path.dirname(os.path.realpath(TAG_LOCATION+self.tags[self.cursor_swap[0]]+"/"+file))+"/"
 				self.update_context_bar(p)
