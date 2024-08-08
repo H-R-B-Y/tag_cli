@@ -1,11 +1,12 @@
-I don't like having to navigate around a filesystem to find where things are, MacOs tags inspired me to create a similar type of file structure.
+# Tag UI and wrapper function.
 
-On a high level I just created a Tags directory in $HOME, populated with folders to represent the tags, then whenever i would like to tag somehting i can just symlink the file/folder into the respective tag. 
+Tag UI used for navigating to tagged files/folders.
 
-The user interface can be used to view the tags and navigate to the directory of any tagged file/folder.
+Wrapper function to be sourced in shell rc file so that cd is run in the current shell instance.
+
 
 To Do:
-- Sllow lists longer than the row count!!!!!
+- Allow lists longer than the row count!!!!!
 - Ability to add tags through the UI.
 - Ability to untag items through the UI.
 - Remove hard coded links
