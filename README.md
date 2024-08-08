@@ -5,7 +5,13 @@ On a high level I just created a Tags directory in $HOME, populated with folders
 The user interface can be used to view the tags and navigate to the directory of any tagged file/folder.
 
 To Do:
-- allow lists longer than the row count!!!!!
+- Sllow lists longer than the row count!!!!!
 - Ability to add tags through the UI.
 - Ability to untag items through the UI.
+- Remove hard coded links
 - Figure out how to allow spaces in tag names in conjunction with the tab completion (a space in a tags name gets split into multiple completion targets T-T)
+
+Setup:
+- Create Tags folder in `$HOME`
+- Source wrapper.sh in .{insert shell name here}rc
+- Update hard coded links if needed 
