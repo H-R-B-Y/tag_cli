@@ -24,18 +24,14 @@ class twoColumn:
 		self.height, self.width = self.stdscr.getmaxyx()
 		self.col_width = self.width // 2
 
-		curses.curs_set(0)
+		
 		self.stdscr.nodelay(0)  # Ensure blocking mode for getch
 		self.stdscr.timeout(-1)
-		curses.cbreak()  # Enable cbreak mode
-		curses.noecho()
-		self.stdscr.keypad(True)
+		self.mode = self.modes.navigate
 
 		self.tags = []
 		self.directories = []
 		self.files = []
-
-		self._mode = self.modes.navigate
 
 		self.cursor = [0,0]
 		self.cursor_swap = [0,0]
@@ -109,20 +105,28 @@ class twoColumn:
 	def draw_windows (self):
 		self.left_win.clear()
 		self.right_win.clear()
+
 		self.left_win.attron(curses.color_pair(5))
 		self.left_win.box()
-		self.left_win.addstr(0,0, "Tags")
+		self.left_win.addstr(0,1, "Tags")
 		self.left_win.attroff(curses.color_pair(5))
+		
 		self.right_win.attron(curses.color_pair(6))
 		self.right_win.box()
-		self.right_win.addstr(0,0, "Files/Folders")
+		self.right_win.addstr(0,1, "Files/Folders")
 		self.right_win.attroff(curses.color_pair(6))
+		
 		pad = 1
 		i = 0
 		for tag in self.tags:
 			self.left_win.attron(curses.color_pair(6) if not [i, 0] == self.cursor else curses.color_pair(4))
-			self.left_win.addstr(pad+i, pad+0, tag + (" >"if ([i,0] == self.cursor_swap and self.cursor[1] == 1) else ""))
+			self.left_win.addstr(pad+i, pad+0, tag)
 			self.left_win.attroff(curses.color_pair(6) if not [i, 0] == self.cursor else curses.color_pair(4))
+			if ([i,0] == self.cursor_swap and self.cursor[1] == 1):
+				self.left_win.addch(" ")
+				self.left_win.attron(curses.color_pair(1))
+				self.left_win.addch(">")
+				self.left_win.attroff(curses.color_pair(1))
 			if ([i,0] == self.cursor):
 				self.load_contents(tag)
 			i += 1
@@ -136,6 +140,7 @@ class twoColumn:
 				self.update_context_bar(p)
 			i += 1
 		i += 1
+
 		for file in self.files:
 			self.right_win.attron(curses.color_pair(5) if not [i-1, 1] == self.cursor else curses.color_pair(4))
 			self.right_win.addstr(pad+i, pad+0, file)
