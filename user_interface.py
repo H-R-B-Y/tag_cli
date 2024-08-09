@@ -48,7 +48,7 @@ class twoColumn:
 		self.load_contents(self.tags[0])
 		self.init_windows() 
 		self.context_bar.attron(curses.color_pair(2))
-		self.update_context_bar("n: new tag  |  del: delete a Tag or untag a file/folder  |  q: quit")
+		self.update_context_bar("n: new Tag  |  del: delete a Tag or untag a file/folder  |  q: quit")
 		self.context_bar.attroff(curses.color_pair(2))
 
 	@property
@@ -229,6 +229,8 @@ class twoColumn:
 			self.update_context_bar("Tag already exists")
 		elif (" " in tagname):
 			self.update_context_bar("Tag cannot (yet) contain spaces")
+		elif (tagname == "" or tagname == None):
+			self.update_context_bar("Tag cannot be blank!")
 		else:
 			os.mkdir(TAG_LOCATION+tagname)
 			self.init_tags()
