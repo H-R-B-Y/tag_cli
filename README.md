@@ -6,11 +6,13 @@ Wrapper function to be sourced in shell rc file so that cd is run in the current
 
 
 ## To Do:
-- Allow lists longer than the row count!!!!!
+- ~~Allow lists longer than the row count!!!!!~~
 - ~~Ability to add tags through the UI.~~
 - ~~Ability to untag items through the UI.~~
 - ~~Remove hard coded links~~ (It is still hard coded but using a single source!)
+- Update delete code to avoid situation where the line is too long to read new characters!
 - Figure out how to allow spaces in tag names in conjunction with the tab completion (a space in a tags name gets split into multiple completion targets T-T)
+- Would be nice to implement the preview window ?_?
 
 ## Setup:
 - Create Tags folder in `$HOME`
