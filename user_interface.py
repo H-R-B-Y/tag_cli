@@ -203,7 +203,10 @@ class twoColumn:
 				self.cursor_offset[1] += 1
 			else:
 				#self.cursor[0] = CLAMP(self.cursor[0]+1, 0, ([len(self.tags), len(self.directories) + len(self.files)][self.cursor[1]])-1)
-				self.cursor[0] = CLAMP(self.cursor[0] + 1, 0, self.height-4)
+				if (self.cursor[1] == 0):
+					self.cursor[0] = CLAMP(self.cursor[0] + 1, 0, min(self.height-4, len(self.tags)-1))
+				elif (self.cursor[1] == 1):
+					self.cursor[0] = CLAMP(self.cursor[0] + 1, 0, min(self.height-4, (len(self.directories) + len(self.files))-1))
 
 	def enter_action (self):
 		output = ""
