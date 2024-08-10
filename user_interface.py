@@ -11,9 +11,17 @@ DIVMOD = lambda nume, divi: [nume//divi , nume%divi]
 OUTPUTFILE = os.path.expanduser(os.environ["SCRIPT_DIR"]) + "/navto" 
 
 
-class twoColumn:
+class userInterface:
 
 	class modes:
+		"""
+		Simple enum for state machine.
+			Navigate - 0
+			Append - 1
+			Delete - 2
+		
+		See userInterface.mode getter/setter methods!
+		"""
 		_modes = [0, 1, 2]
 		navigate = 0
 		append = 1
@@ -56,10 +64,19 @@ class twoColumn:
 
 	@property
 	def mode (self):
+		"""
+		mode getter method.
+		Returns the current mode.
+		"""
 		return self._mode
 
 	@mode.setter
 	def mode (self, newMode):
+		"""
+		mode setter method.
+		When changing modes different I/O options need to be set in the current terminal window,
+		these options are automatically configured when setting the mode.
+		"""
 		assert newMode in self.modes._modes
 		if (newMode == self.modes.append):
 			curses.curs_set(1)
@@ -80,6 +97,10 @@ class twoColumn:
 
 	@property
 	def selected (self):
+		"""
+		selected getter method.
+		Returns the value the cursor is currently pointed at.
+		"""
 		if (self.cursor[1] == 0):
 			return self.tags[self.cursor[0] + self.cursor_offset[0]]
 		elif (self.cursor[1] == 1):
@@ -88,10 +109,19 @@ class twoColumn:
 	
 	@property
 	def swap_selection (self):
+		"""
+		swap_selection getter method.
+		Returns the value of the swap cursor 
+		(the currently selected tag when cursor is in right_win)
+		"""
 		return self.tags[self.cursor_swap[0] + self.cursor_offset[0]]
 
 	@property
 	def selected_path (self):
+		"""
+		selected_path getter method.
+		Returns the path of the currently selected file/folder.
+		"""
 		if (self.cursor[1] == 0):
 			return TAG_LOCATION + self.selected
 		elif (self.cursor[1] == 1):
@@ -111,10 +141,16 @@ class twoColumn:
 			curses.init_pair(7, curses.COLOR_WHITE, -1)  # Color 7: White text
 
 	def init_tags (self):
+		"""
+		Read the tags from the tag folder.
+		"""
 		self.tags = next(os.walk(TAG_LOCATION))[1]
 		self.tag_count = len(self.tags)
 
 	def load_contents (self, tag):
+		"""
+		Read the contents of a tag folder.
+		"""
 		temp, self.directories, self.files = next(os.walk(TAG_LOCATION+tag))
 		self.contents_count = len(self.files) + len(self.directories)
 
@@ -122,17 +158,22 @@ class twoColumn:
 		self.left_win = curses.newwin(self.height-1, self.col_width, 0, 0)
 		self.right_win = curses.newwin(self.height-1, self.col_width, 0, self.col_width)
 		self.context_bar = curses.newwin(1, self.width, self.height-1, 0)
-		self.left_win.box()
-		self.right_win.box()
 		self.stdscr.refresh()
 
 	def update_context_bar (self, text, limit=0):
+		"""
+		Update the text in the context bar!
+		limit allows for right padding in cases where space is needed for user input.
+		"""
 		self.context_bar.clear()
 		self.context_bar.addstr(0,0, text[0:CLAMP(len(text), 1, self.width-(limit+1))])
 		self.context_bar.refresh()
 
 	# handle scrolling eventually
 	def draw_windows (self):
+		"""
+		I refuse to document this until i clean it up!
+		"""
 		self.left_win.clear()
 		self.right_win.clear()
 
@@ -199,6 +240,9 @@ class twoColumn:
 		self.right_win.refresh()
 
 	def navigation (self, direction):
+		"""
+		Same here, please clean this up!
+		"""
 		if (direction == curses.KEY_LEFT 
 				and self.cursor[1] != 0
 				):
@@ -234,6 +278,12 @@ class twoColumn:
 					self.cursor[0] = CLAMP(self.cursor[0] + 1, 0, min(self.height-4, self.contents_count-1))
 
 	def enter_action (self):
+		"""
+		Behaviour for the enter key being pressed!
+		If the cursor is in the left window, enter will navigate into the selected tag.
+		If the cursor is in the right window, 
+		enter will close the UI and navigate the shell to the selected file/folder location
+		"""
 		output = ""
 		if (self.cursor[1] == 0):
 			return self.navigation(curses.KEY_RIGHT)
@@ -247,6 +297,13 @@ class twoColumn:
 		self.kill_switch = True
 
 	def append_tag (self):
+		"""
+		Append tag handles adding new tags to the Tag folder.
+		Validation of tag names:
+			Tag names are stripped of all leading and trailing whitespace.
+			Tag names cannot be an empty string.
+			Tag name cannot be the same as a pre-existing Tag.
+		"""
 		self.mode = self.modes.append
 
 		self.update_context_bar("Please enter name of tag: ")
@@ -265,6 +322,11 @@ class twoColumn:
 		self.mode = self.modes.navigate
 
 	def delete_action (self):
+		"""
+		Method to handle the deletion of a selected entry.
+		For tagged files or folders this action will remove the symlink entry from the Tag folder.
+		For removing Tags, all symlinks within the tag folder need to be removed before the tag folder can be deleted.
+		"""
 		self.mode = self.modes.delete
 		if (self.cursor[1] == 0):
 			selected = self.selected
@@ -304,6 +366,10 @@ class twoColumn:
 		self.handle_key()
 
 	def handle_key (self):
+		"""
+		Switch case for key behaviour.
+		Functions are passed the key_event, wrap in lambda for functions without arguments.
+		"""
 		global OUTPUTFILE
 		self.left_win.refresh()
 		self.right_win.refresh()
@@ -324,6 +390,10 @@ class twoColumn:
 			events[key_event](key_event)
 
 	def mainloop (self):
+		"""
+		handle keys is a blocking event, 
+		meaning screen only refreshes after a key has been pressed.
+		"""
 		while not self.kill_switch:
 			self.draw_windows()
 			self.handle_key()
@@ -332,7 +402,7 @@ class twoColumn:
 def main (thingy):
 	with open(OUTPUTFILE, "w+") as f:
 		f.write("")
-	window = twoColumn(thingy)
+	window = userInterface(thingy)
 	window.mainloop()
 	curses.endwin()
 
