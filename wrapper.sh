@@ -51,19 +51,29 @@ function tagger() {
 	fi
 }
 
+_local_files()
+{
+	local dir="$(pwd)"
+
+	pushd "$dir" >/dev/null
+	find * -maxdepth 0 2>/dev/null
+	popd >/dev/null
+}
+
 _tagger_completions() {
 	local cur prev opts
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 	TAGS_DIR="$HOME/Tags"
+	local IFS=$'\n'
 
 	if [ $COMP_CWORD -eq 1 ]; then
-		opts=$(ls --quoting-style=escape $TAGS_DIR)
-		opts="${opts} list"
-		COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+		opts=$(find "$TAGS_DIR"/* -maxdepth 0 -printf "%f\n" 2>/dev/null)
+		opts="${opts}$'\n'list"
+		COMPREPLY=( $(compgen -W "$opts" -- "$cur"))
 	elif [ $COMP_CWORD -eq 2 ]; then
-		if [ -d "$TAGS_DIR/$prev" ]; then
-			COMPREPLY=( $(compgen -W "$(ls .)" -- "$cur") )
+		if [ -d "$TAGS_DIR/${prev//\\/}" ]; then
+			COMPREPLY=( $(compgen -W "$(_local_files)" -- "$cur") )
 		fi
 	fi
 }
