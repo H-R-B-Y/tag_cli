@@ -3,6 +3,7 @@
 import curses, os
 
 # This needs to be documented better please!!!!!!!!!!!!
+# also clean up stuff, all this dynamic calc is stupid T-T
 
 TAG_LOCATION = os.path.expanduser(os.environ["TAGS_DIR"]) + "/"
 CLAMP = lambda x, min, max: (min if x < min else (max if x > max else x))
@@ -34,8 +35,10 @@ class twoColumn:
 		self.mode = self.modes.navigate
 
 		self.tags = []
+		self.tag_count = 0
 		self.directories = []
 		self.files = []
+		self.contents_count = 0
 
 		self.cursor = [0,0]
 		self.cursor_swap = [0,0]
@@ -75,6 +78,26 @@ class twoColumn:
 			self.stdscr.keypad(False)
 		self._mode = newMode
 
+	@property
+	def selected (self):
+		if (self.cursor[1] == 0):
+			return self.tags[self.cursor[0] + self.cursor_offset[0]]
+		elif (self.cursor[1] == 1):
+			return self.directories[self.cursor[0] + self.cursor_offset[1]] if (self.cursor[0] + self.cursor_offset[1]) < len(self.directories) else self.files[(self.cursor[0] + self.cursor_offset[1])- len(self.directories)]
+		return None
+	
+	@property
+	def swap_selection (self):
+		return self.tags[self.cursor_swap[0] + self.cursor_offset[0]]
+
+	@property
+	def selected_path (self):
+		if (self.cursor[1] == 0):
+			return TAG_LOCATION + self.selected
+		elif (self.cursor[1] == 1):
+			return TAG_LOCATION + self.swap_selection + "/" + self.selected
+		return None
+
 	def init_colors(self):
 			# Initialize the default color settings
 			curses.start_color()
@@ -89,9 +112,11 @@ class twoColumn:
 
 	def init_tags (self):
 		self.tags = next(os.walk(TAG_LOCATION))[1]
+		self.tag_count = len(self.tags)
 
 	def load_contents (self, tag):
 		temp, self.directories, self.files = next(os.walk(TAG_LOCATION+tag))
+		self.contents_count = len(self.files) + len(self.directories)
 
 	def init_windows (self):
 		self.left_win = curses.newwin(self.height-1, self.col_width, 0, 0)
@@ -101,9 +126,9 @@ class twoColumn:
 		self.right_win.box()
 		self.stdscr.refresh()
 
-	def update_context_bar (self, text):
+	def update_context_bar (self, text, limit=0):
 		self.context_bar.clear()
-		self.context_bar.addstr(0,0, text[0:CLAMP(len(text), 1, self.width-1)])
+		self.context_bar.addstr(0,0, text[0:CLAMP(len(text), 1, self.width-(limit+1))])
 		self.context_bar.refresh()
 
 	# handle scrolling eventually
@@ -132,7 +157,7 @@ class twoColumn:
 			self.left_win.attron(curses.color_pair(6) if not [i - self.cursor_offset[0], 0] == self.cursor else curses.color_pair(4))
 			self.left_win.addstr((pad+i) - self.cursor_offset[0], pad+0, tag[0:CLAMP(len(tag), 1, self.col_width-2)])
 			self.left_win.attroff(curses.color_pair(6) if not [i - self.cursor_offset[0], 0] == self.cursor else curses.color_pair(4))
-			if ([i- self.cursor_offset[0],0] == self.cursor_swap and self.cursor[1] == 1):
+			if ([i - self.cursor_offset[0],0] == self.cursor_swap and self.cursor[1] == 1):
 				self.left_win.addch(" ")
 				self.left_win.attron(curses.color_pair(1))
 				self.left_win.addch(">")
@@ -152,7 +177,7 @@ class twoColumn:
 			self.right_win.addstr((pad+i) - self.cursor_offset[1], pad+0, (directory + "/")[0:CLAMP(len(directory)+1, 1, self.col_width-2)])
 			self.right_win.attroff(curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4))
 			if ([i - self.cursor_offset[1], 1] == self.cursor):
-				p = os.path.realpath(TAG_LOCATION+self.tags[self.cursor_swap[0] + self.cursor_offset[0]]+"/"+directory+"/")+"/"
+				p = os.path.realpath(self.selected_path)+"/"
 				self.update_context_bar(p)
 			i += 1
 
@@ -166,7 +191,7 @@ class twoColumn:
 			self.right_win.addstr((pad+i) - self.cursor_offset[1], pad+0, file[0:CLAMP(len(file), 1, self.col_width-2)])
 			self.right_win.attroff(curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4))
 			if ([i - self.cursor_offset[1], 1] == self.cursor):
-				p = os.path.dirname(os.path.realpath(TAG_LOCATION+self.tags[self.cursor_swap[0] + self.cursor_offset[0]]+"/"+file))+"/"
+				p = os.path.dirname(os.path.realpath(self.selected_path))+"/"
 				self.update_context_bar(p)
 			i += 1
 
@@ -182,7 +207,7 @@ class twoColumn:
 			self.update_context_bar("")
 		elif (direction == curses.KEY_RIGHT 
 				and self.cursor[1] != 1 
-				and (len(self.directories) + len(self.files)) != 0
+				and (self.contents_count) != 0
 				):
 			self.cursor_swap = self.cursor
 			self.cursor = [0, 1]
@@ -191,7 +216,7 @@ class twoColumn:
 				# if the cursor is on the left and there are more tags than there is space on the screen.
 				# and we have an offset set then:
 				self.cursor_offset[0] -= 1
-			elif (self.cursor[1] == 1 and len(self.files) + len(self.directories) > self.height - 3 and self.cursor_offset[1] > 0):
+			elif (self.cursor[1] == 1 and self.contents_count > self.height - 3 and self.cursor_offset[1] > 0):
 				self.cursor_offset[1] -= 1
 			else:
 				#self.cursor[0] = CLAMP(self.cursor[0]-1, 0, ([len(self.tags), len(self.directories) + len(self.files)][self.cursor[1]])-1)
@@ -199,23 +224,23 @@ class twoColumn:
 		elif (direction == curses.KEY_DOWN):
 			if (self.cursor[1] == 0 and len(self.tags) > self.height-3 and self.cursor_offset[0] + self.height-3 < len(self.tags)):
 				self.cursor_offset[0] += 1
-			elif (self.cursor[1] == 1 and len(self.directories) + len(self.files) > self.height-3 and self.cursor_offset[1] + self.height-3 < len(self.directories) + len(self.files)):
+			elif (self.cursor[1] == 1 and self.contents_count > self.height-3 and self.cursor_offset[1] + self.height-3 < self.contents_count):
 				self.cursor_offset[1] += 1
 			else:
 				#self.cursor[0] = CLAMP(self.cursor[0]+1, 0, ([len(self.tags), len(self.directories) + len(self.files)][self.cursor[1]])-1)
 				if (self.cursor[1] == 0):
 					self.cursor[0] = CLAMP(self.cursor[0] + 1, 0, min(self.height-4, len(self.tags)-1))
 				elif (self.cursor[1] == 1):
-					self.cursor[0] = CLAMP(self.cursor[0] + 1, 0, min(self.height-4, (len(self.directories) + len(self.files))-1))
+					self.cursor[0] = CLAMP(self.cursor[0] + 1, 0, min(self.height-4, self.contents_count-1))
 
 	def enter_action (self):
 		output = ""
 		if (self.cursor[1] == 0):
 			return self.navigation(curses.KEY_RIGHT)
 		if (self.cursor[0] + self.cursor_offset[1] < len(self.directories)):
-			output = TAG_LOCATION + self.tags[self.cursor_swap[0] + self.cursor_offset[0]] + "/" + self.directories[self.cursor[0] + self.cursor_offset[1]]
+			output = self.selected_path
 		elif ((self.cursor[0] + self.cursor_offset[1])  - len(self.directories) < len(self.files)):
-			output = TAG_LOCATION + self.tags[self.cursor_swap[0]  + self.cursor_offset[0]] + "/" + self.files[(self.cursor[0] + self.cursor_offset[1])  - len(self.directories) - len(self.directories)]
+			output = self.selected_path
 			output = os.path.dirname(os.path.realpath(output))
 		with open(OUTPUTFILE, "w+") as f:
 			f.write(output)
@@ -244,13 +269,13 @@ class twoColumn:
 	def delete_action (self):
 		self.mode = self.modes.delete
 		if (self.cursor[1] == 0):
-			selected = self.tags[self.cursor[0] + self.cursor_offset[0]]
-			self.update_context_bar(f"Are you sure you want to delete the tag {selected}? (y/n) : ")
+			selected = self.selected
+			self.update_context_bar(f"Are you sure you want to delete the tag {selected}? (y/n) : ", 5)
 			response = self.context_bar.getstr().decode("utf-8")
 			if (not response in ["y","Y","Yes","yes"]):
 				self.update_context_bar("Tag was not deleted.")
 			else:
-				selected_path = TAG_LOCATION + selected
+				selected_path = self.selected_path
 				if (len(self.directories)):
 					[os.remove(selected_path+"/"+x) for x in self.directories]
 				if (len(self.files)):
@@ -258,22 +283,22 @@ class twoColumn:
 				os.rmdir(selected_path)
 				self.init_tags()
 				self.navigation(curses.KEY_UP)
-				self.load_contents(self.tags[self.cursor[0] + self.cursor_offset[0]])
+				self.load_contents(self.selected)
 				self.draw_windows()
 				self.update_context_bar(f"Removed Tag {selected}")
 		else:
-			selected = self.directories[self.cursor[0] + self.cursor_offset[1]] if (self.cursor[0] + self.cursor_offset[1]) < len(self.directories) else self.files[(self.cursor[0] + self.cursor_offset[1])- len(self.directories)]
-			self.update_context_bar(f"Are you sure you want to untag {selected}? (y/n) : ")
+			selected = self.selected
+			self.update_context_bar(f"Are you sure you want to untag {selected}? (y/n) : ", 5)
 			response = self.context_bar.getstr().decode("utf-8")
 			if (response in ["y","Y","Yes","yes"]):
-				selected_path = TAG_LOCATION + self.tags[self.cursor_swap[0] + self.cursor_offset[0]] + "/" + selected
+				selected_path = self.selected_path
 				os.remove(selected_path)
-				self.load_contents(self.tags[self.cursor_swap[0] + self.cursor_offset[0]])
+				self.load_contents(self.swap_selection)
 				self.navigation(curses.KEY_UP)
-				if (len(self.files) + len(self.directories) == 0):
+				if (self.contents_count == 0):
 					self.cursor = self.cursor_swap
 				self.draw_windows()
-				self.update_context_bar(f"{self.tags[self.cursor_swap[0] + self.cursor_offset[0]]} tag was removed from {selected}.")
+				self.update_context_bar(f"{self.swap_selection} tag was removed from {selected}.")
 			else:
 				self.update_context_bar(f"Tag was not removed from {selected}.")
 		self.mode = self.modes.navigate
