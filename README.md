@@ -13,7 +13,7 @@ Wrapper function to be sourced in shell rc file so that cd is run in the current
 - ~~Update delete code to avoid situation where the line is too long to read new characters!~~ (Not perfect but works for now)
 - ~~Cleanup dynamic calculations in favour of static single sources!~~
 - ~~Make selection cleaner~~ (Moved to class property)
-- Figure out how to allow spaces in tag names in conjunction with the tab completion (a space in a tags name gets split into multiple completion targets T-T)
+- ~~Figure out how to allow spaces in tag names in conjunction with the tab completion (a space in a tags name gets split into multiple completion targets T-T)~~ (Tags with spaces in are __working?__)
 - Would be nice to implement the preview window ?_?
  
 

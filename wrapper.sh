@@ -17,7 +17,9 @@ function tagger() {
 	if [ $# -eq 0 ]; then
 		python3 $PATH_TO_UI 3>&1 1>&2 2>&3
 		directory=$(cat $PATH_TO_REDIRECT)
-		cd "$directory"
+		if [ -d $directory ]; then
+			cd "$directory"
+		fi
 	fi
 
 	if [ $# -eq 1 ]; then
@@ -46,8 +48,13 @@ function tagger() {
 			echo "The destination directory '$destination_dir' does not exist."
 		fi
 
-		ln -s "$(realpath $destination)" "$TAGS_DIR/$tag_name/$(basename "$destination")"
-		echo "Symlink created: $TAGS_DIR/$tag_name/$(basename "$destination") -> $destination"
+		ln -s "$(realpath "$destination")" "$TAGS_DIR/$tag_name/$(basename "$destination")"
+		if [ $? -eq 0 ]; then
+			echo "Symlink created: $TAGS_DIR/$tag_name/$(basename "$destination") -> $destination"
+		else
+			echo "Error: Failed to create symlink."
+			exit 1
+		fi
 	fi
 }
 

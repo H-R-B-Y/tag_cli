@@ -250,13 +250,11 @@ class twoColumn:
 		self.mode = self.modes.append
 
 		self.update_context_bar("Please enter name of tag: ")
-		tagname = self.context_bar.getstr().decode("utf-8")
-
+		tagname = self.context_bar.getstr().decode("utf-8").strip()
+	
 		self.update_context_bar("Validating tagname")
 		if (tagname in self.tags):
 			self.update_context_bar("Tag already exists")
-		elif (" " in tagname):
-			self.update_context_bar("Tag cannot (yet) contain spaces")
 		elif (tagname == "" or tagname == None):
 			self.update_context_bar("Tag cannot be blank!")
 		else:
