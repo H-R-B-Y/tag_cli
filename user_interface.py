@@ -108,9 +108,9 @@ class userInterface:
 		return None
 	
 	@property
-	def swap_selection (self):
+	def swap_selected (self):
 		"""
-		swap_selection getter method.
+		swap_selected getter method.
 		Returns the value of the swap cursor 
 		(the currently selected tag when cursor is in right_win)
 		"""
@@ -125,7 +125,7 @@ class userInterface:
 		if (self.cursor[1] == 0):
 			return TAG_LOCATION + self.selected
 		elif (self.cursor[1] == 1):
-			return TAG_LOCATION + self.swap_selection + "/" + self.selected
+			return TAG_LOCATION + self.swap_selected + "/" + self.selected
 		return None
 
 	def init_colors(self):
@@ -172,7 +172,11 @@ class userInterface:
 	# handle scrolling eventually
 	def draw_windows (self):
 		"""
-		I refuse to document this until i clean it up!
+		Draws the windows.
+		Using i to interate through the rows in the terminal window.
+		The size of the left/right windows is hardcoded here, 
+		limiting both the ability to resize the terminal app, 
+		and limiting my ability to add more windows to the app!
 		"""
 		self.left_win.clear()
 		self.right_win.clear()
@@ -193,55 +197,46 @@ class userInterface:
 			if (i < self.cursor_offset[0]):
 				i+=1
 				continue
-			if ((i + pad) - self.cursor_offset[0] > self.height - 3):
-				break
-			self.left_win.attron(curses.color_pair(6) if not [i - self.cursor_offset[0], 0] == self.cursor else curses.color_pair(4))
+			if ((i + pad) - self.cursor_offset[0] > self.height - 3): break
+			attr = curses.color_pair(6) if (not [i - self.cursor_offset[0], 0] == self.cursor) else curses.color_pair(4)	
+			self.left_win.attron(attr)
 			self.left_win.addstr((pad+i) - self.cursor_offset[0], pad+0, tag[0:CLAMP(len(tag), 1, self.col_width-2)])
-			self.left_win.attroff(curses.color_pair(6) if not [i - self.cursor_offset[0], 0] == self.cursor else curses.color_pair(4))
+			self.left_win.attroff(attr)
 			if ([i - self.cursor_offset[0],0] == self.cursor_swap and self.cursor[1] == 1):
-				self.left_win.addch(" ")
-				self.left_win.attron(curses.color_pair(1))
-				self.left_win.addch(">")
-				self.left_win.attroff(curses.color_pair(1))
-			if ([i- self.cursor_offset[0],0] == self.cursor):
-				self.load_contents(tag) # this would be better off being done in navigation i believe!
+				self.left_win.addstr(" >", curses.color_pair(1))
 			i += 1
-		
 		i = 0
 		for directory in self.directories:
 			if(i < self.cursor_offset[1]):
 				i+=1
 				continue
-			if ((i + pad) - self.cursor_offset[1] > self.height - 3):
-				break
-			self.right_win.attron(curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4))
+			if ((i + pad) - self.cursor_offset[1] > self.height - 3): break
+			attr = curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4)
+			self.right_win.attron(attr)
 			self.right_win.addstr((pad+i) - self.cursor_offset[1], pad+0, (directory + "/")[0:CLAMP(len(directory)+1, 1, self.col_width-2)])
-			self.right_win.attroff(curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4))
+			self.right_win.attroff(attr)
 			if ([i - self.cursor_offset[1], 1] == self.cursor):
-				p = os.path.realpath(self.selected_path)+"/"
-				self.update_context_bar(p)
+				self.update_context_bar(os.path.realpath(self.selected_path)+"/")
 			i += 1
-
 		for file in self.files:
 			if (i < self.cursor_offset[1]):
 				i+=1
 				continue
-			if ((i + pad) - self.cursor_offset[1] > self.height - 3):
-				break
-			self.right_win.attron(curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4))
+			if ((i + pad) - self.cursor_offset[1] > self.height - 3): break
+			attr = curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4)
+			self.right_win.attron(attr)
 			self.right_win.addstr((pad+i) - self.cursor_offset[1], pad+0, file[0:CLAMP(len(file), 1, self.col_width-2)])
-			self.right_win.attroff(curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4))
+			self.right_win.attroff(attr)
 			if ([i - self.cursor_offset[1], 1] == self.cursor):
-				p = os.path.dirname(os.path.realpath(self.selected_path))+"/"
-				self.update_context_bar(p)
+				self.update_context_bar(os.path.dirname(os.path.realpath(self.selected_path))+"/")
 			i += 1
-
 		self.left_win.refresh()
 		self.right_win.refresh()
 
 	def navigation (self, direction):
 		"""
-		Same here, please clean this up!
+		Navigation handles the direction keys.
+		Again here the size of the windows is hard coded T-T
 		"""
 		if (direction == curses.KEY_LEFT 
 				and self.cursor[1] != 0
@@ -249,33 +244,49 @@ class userInterface:
 			self.cursor = self.cursor_swap
 			self.cursor_offset[1] = 0
 			self.update_context_bar("")
+
 		elif (direction == curses.KEY_RIGHT 
 				and self.cursor[1] != 1 
 				and (self.contents_count) != 0
 				):
 			self.cursor_swap = self.cursor
 			self.cursor = [0, 1]
+
 		elif (direction == curses.KEY_UP):
-			if (self.cursor[1] == 0 and len(self.tags) > self.height-3 and self.cursor_offset[0] > 0):
-				# if the cursor is on the left and there are more tags than there is space on the screen.
-				# and we have an offset set then:
+			if (self.cursor[1] == 0
+					and len(self.tags) > self.height-3
+					and self.cursor_offset[0] > 0
+					):
 				self.cursor_offset[0] -= 1
-			elif (self.cursor[1] == 1 and self.contents_count > self.height - 3 and self.cursor_offset[1] > 0):
+			elif (self.cursor[1] == 1
+					and self.contents_count > self.height - 3
+					and self.cursor_offset[1] > 0
+					):
 				self.cursor_offset[1] -= 1
 			else:
-				#self.cursor[0] = CLAMP(self.cursor[0]-1, 0, ([len(self.tags), len(self.directories) + len(self.files)][self.cursor[1]])-1)
 				self.cursor[0] = CLAMP(self.cursor[0] - 1, 0, self.height-4)
+
 		elif (direction == curses.KEY_DOWN):
-			if (self.cursor[1] == 0 and len(self.tags) > self.height-3 and self.cursor_offset[0] + self.height-3 < len(self.tags)):
+			if (self.cursor[1] == 0
+					and len(self.tags) > self.height-3 
+					and self.cursor_offset[0] + self.height-3 < len(self.tags)
+					):
 				self.cursor_offset[0] += 1
-			elif (self.cursor[1] == 1 and self.contents_count > self.height-3 and self.cursor_offset[1] + self.height-3 < self.contents_count):
+			elif (self.cursor[1] == 1
+					and self.contents_count > self.height-3
+					and self.cursor_offset[1] + self.height-3 < self.contents_count
+					):
 				self.cursor_offset[1] += 1
 			else:
-				#self.cursor[0] = CLAMP(self.cursor[0]+1, 0, ([len(self.tags), len(self.directories) + len(self.files)][self.cursor[1]])-1)
 				if (self.cursor[1] == 0):
 					self.cursor[0] = CLAMP(self.cursor[0] + 1, 0, min(self.height-4, len(self.tags)-1))
 				elif (self.cursor[1] == 1):
 					self.cursor[0] = CLAMP(self.cursor[0] + 1, 0, min(self.height-4, self.contents_count-1))
+
+		if (self.cursor[1] == 0):
+			self.load_contents(self.selected)
+		else:
+			self.load_contents(self.swap_selected)
 
 	def enter_action (self):
 		"""
@@ -289,7 +300,7 @@ class userInterface:
 			return self.navigation(curses.KEY_RIGHT)
 		if (self.cursor[0] + self.cursor_offset[1] < len(self.directories)):
 			output = self.selected_path
-		elif ((self.cursor[0] + self.cursor_offset[1])  - len(self.directories) < len(self.files)):
+		elif ((self.cursor[0] + self.cursor_offset[1]) - len(self.directories) < len(self.files)):
 			output = self.selected_path
 			output = os.path.dirname(os.path.realpath(output))
 		with open(OUTPUTFILE, "w+") as f:
@@ -353,17 +364,37 @@ class userInterface:
 			if (response in ["y","Y","Yes","yes"]):
 				selected_path = self.selected_path
 				os.remove(selected_path)
-				self.load_contents(self.swap_selection)
+				self.load_contents(self.swap_selected)
 				self.navigation(curses.KEY_UP)
 				if (self.contents_count == 0):
 					self.cursor = self.cursor_swap
 				self.draw_windows()
-				self.update_context_bar(f"{self.swap_selection} tag was removed from {selected}.")
+				self.update_context_bar(f"{self.swap_selected} tag was removed from {selected}.")
 			else:
 				self.update_context_bar(f"Tag was not removed from {selected}.")
 		self.mode = self.modes.navigate
 		self.draw_windows()
 		self.handle_key()
+
+
+	def handle_resize (self):
+		self.left_win.clear()
+		self.right_win.clear()
+		self.context_bar.clear()
+		self.height, self.width = self.stdscr.getmaxyx()
+		self.col_width = self.width//2
+		if (self.height < 5 or self.width < 14):
+			self.kill_switch = True
+			print("Not enough screenspace!")
+			return
+		self.left_win.resize(self.height-1, self.col_width)
+		self.right_win.resize(self.height-1, self.col_width)
+		self.right_win.mvwin(0,self.col_width)
+		self.context_bar.resize(1, self.width)
+		self.context_bar.mvwin(self.height-1, 0)
+		self.update_context_bar(f"{self.height}x{self.width}")
+		self.stdscr.refresh()
+		
 
 	def handle_key (self):
 		"""
@@ -384,7 +415,8 @@ class userInterface:
 			10 : lambda x: self.enter_action(),
 			ord("q") : lambda x: setattr(self, "kill_switch", True),
 			ord("n") : lambda x: self.append_tag(),
-			curses.KEY_DC : lambda x: self.delete_action()
+			curses.KEY_DC : lambda x: self.delete_action(),
+			curses.KEY_RESIZE : lambda x: self.handle_resize()
 		}
 		if (key_event in events.keys()):
 			events[key_event](key_event)
