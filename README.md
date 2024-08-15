@@ -32,7 +32,7 @@ Wrapper function to be sourced in shell rc file so that cd is run in the current
 - New tags can be manually created using `mkdir {tagname}` in the tag directory specified during installation.
 
 
-## unisnstalling
+## Uninstall
 - To uninstall remove the line:
 `source {path to your installation}/wrapper.sh`
 from the shell rc file specified during installation.
