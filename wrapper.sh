@@ -2,10 +2,8 @@
 
 # This needs to be documented better please!!!!!!!
 
-# HARDCODED!
-# these directories need to be exported to environment as the UI is dependant on these!
-export TAGS_DIR="$HOME/Tags"
-export SCRIPT_DIR=~/Documents/tag_cli/
+export TAGS_DIR="/home/harvey/Tags"
+export SCRIPT_DIR="/home/harvey/Documents/tag_cli"
 
 function tagger() {
 	# Path to the tags directory
@@ -19,6 +17,7 @@ function tagger() {
 		directory=$(cat $PATH_TO_REDIRECT)
 		if [ -d $directory ]; then
 			cd "$directory"
+			echo "" > $PATH_TO_REDIRECT 
 		fi
 	fi
 

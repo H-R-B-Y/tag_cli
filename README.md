@@ -22,6 +22,17 @@ Wrapper function to be sourced in shell rc file so that cd is run in the current
 
 
 ## Setup:
-- Create Tags folder in `$HOME`
-- Source wrapper.sh in `.{insert shell name here}rc`
-- Update the `$SCRIPT_DIR` in wrapper.sh to reflect where tag_cli is installed!
+- Run the install.sh script
+- reload your shell config (i.e. `source ~/.bashrc`)
+
+## Usage:
+- `tagger` can be run from the terminal to run the UI.
+	- from the UI `n` can be used to create a new tag.
+- `tagger {name of tag} {path to a file}` will tag the specified file
+- New tags can be manually created using `mkdir {tagname}` in the tag directory specified during installation.
+
+
+## unisnstalling
+- To uninstall remove the line:
+`source {path to your installation}/wrapper.sh`
+from the shell rc file specified during installation.
