@@ -9,7 +9,7 @@ ask_yes_no() {
 		esac
 	done
 }
-
+echo ""
 echo "Tag folder setup."
 
 read -p "Enter the tag directory [default: ~/Tags]: " tag_directory
