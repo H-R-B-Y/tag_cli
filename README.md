@@ -8,7 +8,7 @@ Wrapper function to be sourced in shell rc file so that cd is run in the current
 ## To Do:
 - Sub-Tagging? (thinking either AND groupings or sub directories?) (V2)
 - Would be nice to implement the preview window ?_? (V2)
-- ~~Setup script!~~
+- __Setup script! (previously marked as done! I was wrong T-T)__
 - ~~Make the code cleaner T-T~~
 - ~~Ability to resize the window without it breaking :D~~
 - ~~Allow lists longer than the row count!!!!!~~
