@@ -2,8 +2,8 @@
 
 # This needs to be documented better please!!!!!!!
 
-export TAGS_DIR="/home/harvey/Tags"
-export SCRIPT_DIR="/home/harvey/Documents/tag_cli"
+export TAGS_DIR="/home/hbreeze/Tags"
+export SCRIPT_DIR="/home/hbreeze/Documents/tagcli"
 
 function tagger() {
 	# Path to the tags directory
