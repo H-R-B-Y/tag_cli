@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-import curses, os
+import curses, os,json
 
 # This needs to be documented better please!!!!!!!!!!!!
 # also clean up stuff, all this dynamic calc is stupid T-T
@@ -10,6 +10,20 @@ CLAMP = lambda x, min, max: (min if x < min else (max if x > max else x))
 DIVMOD = lambda nume, divi: [nume//divi , nume%divi]
 OUTPUTFILE = os.path.expanduser(os.environ["SCRIPT_DIR"]) + "/navto" 
 
+colours = {
+	"tag_border": 5,
+	"file_border": 6,
+	"tag_text": 6,
+	"file_text": 5,
+	"tag_highlight": 4,
+	"file_highlight": 4,
+	"arrow": 1
+}
+
+def load_colours ():
+	global colours
+	with open(os.path.expanduser(os.environ["SCRIPT_DIR"])+"/colours.json", "r") as f:
+		colours = json.load(f)
 
 class userInterface:
 
@@ -130,6 +144,7 @@ class userInterface:
 
 	def init_colors(self):
 			# Initialize the default color settings
+			load_colours()
 			curses.start_color()
 			curses.use_default_colors()
 			curses.init_pair(1, curses.COLOR_RED, -1)    # Color 1: Red text
@@ -178,18 +193,19 @@ class userInterface:
 		limiting both the ability to resize the terminal app, 
 		and limiting my ability to add more windows to the app!
 		"""
+		global colours
 		self.left_win.clear()
 		self.right_win.clear()
 
-		self.left_win.attron(curses.color_pair(5))
+		self.left_win.attron(curses.color_pair(colours["tag_border"]))
 		self.left_win.box()
 		self.left_win.addstr(0,1, " Tags ")
-		self.left_win.attroff(curses.color_pair(5))
+		self.left_win.attroff(curses.color_pair(colours["tag_border"]))
 		
-		self.right_win.attron(curses.color_pair(6))
+		self.right_win.attron(curses.color_pair(colours["file_border"]))
 		self.right_win.box()
 		self.right_win.addstr(0,1, " Files/Folders ")
-		self.right_win.attroff(curses.color_pair(6))
+		self.right_win.attroff(curses.color_pair(colours["file_border"]))
 		
 		pad = 1
 		i = 0
@@ -198,12 +214,12 @@ class userInterface:
 				i+=1
 				continue
 			if ((i + pad) - self.cursor_offset[0] > self.height - 3): break
-			attr = curses.color_pair(6) if (not [i - self.cursor_offset[0], 0] == self.cursor) else curses.color_pair(4)	
+			attr = curses.color_pair(colours["tag_text"]) if (not [i - self.cursor_offset[0], 0] == self.cursor) else curses.color_pair(colours["tag_highlight"])	
 			self.left_win.attron(attr)
 			self.left_win.addstr((pad+i) - self.cursor_offset[0], pad+0, tag[0:CLAMP(len(tag), 1, self.col_width-2)])
 			self.left_win.attroff(attr)
 			if ([i - self.cursor_offset[0],0] == self.cursor_swap and self.cursor[1] == 1):
-				self.left_win.addstr(" >", curses.color_pair(1))
+				self.left_win.addstr(" >", curses.color_pair(colours["arrow"]))
 			i += 1
 		i = 0
 		for directory in self.directories:
@@ -211,7 +227,7 @@ class userInterface:
 				i+=1
 				continue
 			if ((i + pad) - self.cursor_offset[1] > self.height - 3): break
-			attr = curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4)
+			attr = curses.color_pair(colours["file_text"]) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(colours["file_highlight"])
 			self.right_win.attron(attr)
 			self.right_win.addstr((pad+i) - self.cursor_offset[1], pad+0, (directory + "/")[0:CLAMP(len(directory)+1, 1, self.col_width-2)])
 			self.right_win.attroff(attr)
@@ -223,7 +239,7 @@ class userInterface:
 				i+=1
 				continue
 			if ((i + pad) - self.cursor_offset[1] > self.height - 3): break
-			attr = curses.color_pair(5) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(4)
+			attr = curses.color_pair(colours["file_text"]) if not [i - self.cursor_offset[1], 1] == self.cursor else curses.color_pair(colours["file_highlight"])
 			self.right_win.attron(attr)
 			self.right_win.addstr((pad+i) - self.cursor_offset[1], pad+0, file[0:CLAMP(len(file), 1, self.col_width-2)])
 			self.right_win.attroff(attr)

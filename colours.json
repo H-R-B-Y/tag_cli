@@ -1,0 +1,20 @@
+{
+	"colours": {
+		"NOTE":"This is just for reference, these values are not used in the code",
+		"1":"red",
+		"2":"green",
+		"3":"yellow",
+		"4":"blue",
+		"5":"magenta",
+		"6":"cyan",
+		"7":"white"
+	},
+	"NOTE":"These values are used in the code!",
+	"tag_border": 1,
+	"file_border": 1,
+	"tag_text": 6,
+	"file_text": 5,
+	"tag_highlight": 4,
+	"file_highlight": 4,
+	"arrow": 1
+}
