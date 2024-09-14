@@ -8,16 +8,10 @@ Wrapper function to be sourced in shell rc file so that cd is run in the current
 ## To Do:
 - Sub-Tagging? (thinking either AND groupings or sub directories?) (V2)
 - Would be nice to implement the preview window ?_? (V2)
-- __Setup script! (previously marked as done! I was wrong T-T)__
-- ~~Make the code cleaner T-T~~
-- ~~Ability to resize the window without it breaking :D~~
-- ~~Allow lists longer than the row count!!!!!~~
-- ~~Ability to add tags through the UI.~~
-- ~~Ability to untag items through the UI.~~
-- ~~Remove hard coded links~~ (It is still hard coded but using a single source!)
-- ~~Update delete code to avoid situation where the line is too long to read new characters!~~ (Not perfect but works for now)
-- ~~Cleanup dynamic calculations in favour of static single sources!~~
-- ~~Make selection cleaner~~ (Moved to class property)
+- __Setup script! (Still a work in progress):__
+	1. Doesnt work on mac
+	2. Doesnt work without sed
+	3. i have no idea how to init bashcompinit on other shells
 - ~~Figure out how to allow spaces in tag names in conjunction with the tab completion (a space in a tags name gets split into multiple completion targets T-T)~~ (Tags with spaces in are __working?__)
 
 
@@ -30,6 +24,7 @@ Wrapper function to be sourced in shell rc file so that cd is run in the current
 	- from the UI `n` can be used to create a new tag.
 - `tagger {name of tag} {path to a file}` will tag the specified file
 - New tags can be manually created using `mkdir {tagname}` in the tag directory specified during installation.
+- `tagger --update` will check for updates and safely update the main scripts without overwriting your changes.
 
 
 ## Uninstall
