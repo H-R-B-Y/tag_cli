@@ -27,6 +27,9 @@ function tagger() {
 			"list")
 				ls $TAGS_DIR
 				;;
+			"--update")
+				python3 $PATH_TO_UI --update 3>&1 1>&2 2>&3
+				;;
 			*)
 				echo "need to print usage here!"
 				;;
