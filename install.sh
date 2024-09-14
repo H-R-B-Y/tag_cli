@@ -23,6 +23,7 @@ if [ ! -e "$tag_directory" ]; then
 	if ask_yes_no "Create $tag_directory?"; then
 		echo "Creating $tag_directory..."
 		mkdir -p "${tag_directory}"
+		mkdir -p "${tag_directory}/default"
 	else
 		echo "Installation aborted."
 		exit 1
@@ -33,6 +34,9 @@ elif [ ! -d "$tag_directory" ]; then
 	exit 1
 else
 	echo "Tag directory exists."
+	if [ -z "$( ls -A '/path/to/dir' )" ]; then
+		mkdir -p "${tag_directory}/default"
+	fi
 fi
 
 echo "Using current path as install directory."
