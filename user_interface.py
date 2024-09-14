@@ -23,9 +23,8 @@ colours = {
 def check_for_update ():
 	cwd = os.getcwd()
 	os.chdir(os.path.expanduser(os.environ["SCRIPT_DIR"]))
-	#stdout = os.system("git fetch --dry-run --verbose")
 	pipe = subprocess.Popen("git fetch --dry-run --verbose", stdout=subprocess.PIPE)
-	stdout = pipe.communicate()[0]
+	stdout, stderr = pipe.communicate()
 	if stdout:
 		print("There are updates available for this script!")
 		if input("Would you like to update? (y/n): ") in ["y","Y","Yes","yes"]:
