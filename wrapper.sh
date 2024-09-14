@@ -15,7 +15,7 @@ function tagger() {
 	if [ $# -eq 0 ]; then
 		python3 $PATH_TO_UI 3>&1 1>&2 2>&3
 		directory=$(realpath $(cat $PATH_TO_REDIRECT) 2>/dev/null)
-		if [ -d $directory && $directory != "" ]; then
+		if [ -d $directory ] -a [ $directory != "" ]; then
 			cd $directory
 			if [ $? -ne 0 ]; then
 				echo "Error: Failed to navigate to $directory"
