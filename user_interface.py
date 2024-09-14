@@ -23,10 +23,9 @@ colours = {
 def check_for_update ():
 	cwd = os.getcwd()
 	os.chdir(os.path.expanduser(os.environ["SCRIPT_DIR"]))
-	pipe = subprocess.Popen(["git", "fetch", "--dry-run"], stdout=subprocess.PIPE)
-	stdout, _ = pipe.communicate()
-	print("stdout: ", stdout)
-	if stdout:
+	pipe = subprocess.Popen(["git", "fetch", "--dry-run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	stdout, stderr = pipe.communicate()
+	if pipe.returncode == 0 and stdout:
 		print("There are updates available for this script!")
 		if input("Would you like to update? (y/n): ") in ["y","Y","Yes","yes"]:
 			os.system("git add wrapper.sh")
