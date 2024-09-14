@@ -59,11 +59,11 @@ function tagger() {
 					echo "Tag created: $TAGS_DIR/$tag_name"
 				else
 					echo "Error: Failed to create tag."
-					return 1
+					return
 				fi
 			else
 				echo "Exiting..."
-				return 1
+				return
 			fi
 		fi
 		if [ ! -e "$destination" ] || [ "$destination " == ""]; then
@@ -75,11 +75,11 @@ function tagger() {
 					echo "Destination directory created: $destination"
 				else
 					echo "Error: Failed to create destination directory."
-					return 1
+					return
 				fi
 			else
 				echo "Exiting..."
-				return 1
+				return
 			fi
 		fi
 
@@ -88,7 +88,7 @@ function tagger() {
 			echo "Symlink created: $TAGS_DIR/$tag_name/$(basename "$destination") -> $destination"
 		else
 			echo "Error: Failed to create symlink."
-			return 1
+			return
 		fi
 	fi
 }
