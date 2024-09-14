@@ -24,7 +24,6 @@ def check_for_update ():
 	cwd = os.getcwd()
 	os.chdir(os.path.expanduser(os.environ["SCRIPT_DIR"]))
 	pipe = subprocess.Popen(["git", "fetch", "--dry-run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	pipe.wait()
 	stdout, stderr = pipe.communicate()
 	print("stdout: ", stdout)
 	if stdout:
