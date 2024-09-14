@@ -36,6 +36,10 @@ def check_for_update ():
 			os.system("git checkout stash -- wrapper.sh")
 			os.system("git checkout stash -- colours.json")
 			os.system("git stash drop")
+		else:
+			print("No updates were applied.")
+	else:
+		print("No updates available.")
 	os.chdir(cwd)
 
 def load_colours ():
