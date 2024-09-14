@@ -52,9 +52,35 @@ function tagger() {
 		fi
 		if [ ! -d "$TAGS_DIR/$tag_name" ]; then
 			echo "The tag '$tag_name' must be an existing file in the '~/Tags' directory."
+			read -r -p "Would you like to create the tag\? (y/n): " choice
+			if [ "$choice" = "y" ]; then
+				mkdir -p "$TAGS_DIR/$tag_name"
+				if [ $? -eq 0 ]; then
+					echo "Tag created: $TAGS_DIR/$tag_name"
+				else
+					echo "Error: Failed to create tag."
+					return
+				fi
+			else
+				echo "Exiting..."
+				return
+			fi
 		fi
 		if [ ! -e "$destination" ] || [ "$destination" = "" ]; then
-			echo "The destination '$destination' must be an existing file."
+			echo "The destination directory '$destination_dir' does not exist."
+			read -r -p "Would you like to create the destination directory\? (y/n): " choice
+			if [ "$choice" = "y" ]; then
+				mkdir -p "$destination"
+				if [ $? -eq 0 ]; then
+					echo "Destination directory created: $destination"
+				else
+					echo "Error: Failed to create destination directory."
+					return
+				fi
+			else
+				echo "Exiting..."
+				return
+			fi
 		fi
 
 		ln -s "$(realpath "$destination")" "$TAGS_DIR/$tag_name/$(basename "$destination")"
