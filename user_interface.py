@@ -33,8 +33,8 @@ def check_for_update ():
 			os.system("git add wrapper.sh")
 			os.system("git stash")
 			os.system("git pull")
-			os.system("git checkout stash -- wrapper.sh")
-			os.system("git checkout stash -- colours.json")
+			os.system("git add wrapper.sh")
+			os.system("git stash apply")
 			os.system("git stash drop")
 		else:
 			print("No updates were applied.")
