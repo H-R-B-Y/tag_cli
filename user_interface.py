@@ -40,6 +40,7 @@ def check_for_update ():
 			print("No updates were applied.")
 	else:
 		print("No updates available.")
+	print("Returning to previous directory.")
 	os.chdir(cwd)
 
 def load_colours ():
