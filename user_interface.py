@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-import curses, os, json, sys
+import curses, os, json, sys, subprocess
 
 # This needs to be documented better please!!!!!!!!!!!!
 # also clean up stuff, all this dynamic calc is stupid T-T
@@ -23,7 +23,9 @@ colours = {
 def check_for_update ():
 	cwd = os.getcwd()
 	os.chdir(os.path.expanduser(os.environ["SCRIPT_DIR"]))
-	stdout = os.system("git fetch --dry-run --verbose")
+	#stdout = os.system("git fetch --dry-run --verbose")
+	pipe = subprocess.Popen("git fetch --dry-run --verbose", stdout=subprocess.PIPE)
+	stdout = pipe.communicate()[0]
 	if stdout:
 		print("There are updates available for this script!")
 		if input("Would you like to update? (y/n): ") in ["y","Y","Yes","yes"]:
