@@ -27,6 +27,7 @@ def check_for_update ():
 	if stdout:
 		print("There are updates available for this script!")
 		if input("Would you like to update? (y/n): ") in ["y","Y","Yes","yes"]:
+			os.system("git add wrapper.sh")
 			os.system("git stash")
 			os.system("git pull")
 			os.system("git checkout stash -- wrapper.sh")
