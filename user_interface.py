@@ -23,11 +23,11 @@ colours = {
 def check_for_update ():
 	cwd = os.getcwd()
 	os.chdir(os.path.expanduser(os.environ["SCRIPT_DIR"]))
-	subprocess.Popen(["git", "remote", "update"])
+	subprocess.Popen(["git", "remote", "update"]).wait()
 	p1 = subprocess.Popen(["git", "status"], stdout=subprocess.PIPE)
 	pipe = subprocess.Popen(["grep", "Your branch is up to date"], stdin=p1.stdout, stdout=subprocess.PIPE)
 	stdout = pipe.communicate()[0]
-	if pipe.returncode == 0 and stdout.decode("utf-8") != "":
+	if pipe.returncode == 0 and stdout.decode("utf-8") == "":
 		print("There are updates available for this script!")
 		if input("Would you like to update? (y/n): ") in ["y","Y","Yes","yes"]:
 			os.system("git add wrapper.sh")
