@@ -66,7 +66,7 @@ function tagger() {
 				return
 			fi
 		fi
-		if [ ! -e "$destination" ] || [ "$destination" = ""]; then
+		if [ ! -e "$destination" ] || [ "$destination" = "" ]; then
 			echo "The destination directory '$destination_dir' does not exist."
 			read -p "Would you like to create the destination directory? (y/n): " choice
 			if [ "$choice" = "y" ]; then
