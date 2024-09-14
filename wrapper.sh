@@ -14,9 +14,9 @@ function tagger() {
 	# Check if no arguments are provided
 	if [ $# -eq 0 ]; then
 		python3 $PATH_TO_UI 3>&1 1>&2 2>&3
-		directory=$(cat $PATH_TO_REDIRECT)
-		if [ -d $directory ]; then
-			cd $(realpath "$directory" 2>/dev/null)
+		directory=$(realpath $(cat $PATH_TO_REDIRECT))
+		if [ -d $directory && $directory != "" ]; then
+			cd $directory
 			if [ $? -ne 0 ]; then
 				echo "Error: Failed to navigate to $directory"
 				exit 1
