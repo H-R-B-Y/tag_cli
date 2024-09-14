@@ -489,6 +489,12 @@ if __name__ == "__main__":
 			exit()
 	try:
 		main(curses.initscr())
+	except KeyboardInterrupt:
+		try:
+			curses.endwin()
+		except Exception:
+			pass
+		exit()
 	except Exception as e:
 		try:
 			curses.endwin()
