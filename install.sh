@@ -49,8 +49,19 @@ fi
 ins_text="export TAGS_DIR=\"$tag_directory\""
 scr_text="export SCRIPT_DIR=\"$(pwd)\""
 
-sed -i "5s|.*|$ins_text|" ./wrapper.sh
-sed -i "6s|.*|$scr_text|" ./wrapper.sh
+if [[ "$OSTYPE" != "darwin"* ]]; then
+	if ! command -v sed >/dev/null 2>&1; then
+		echo "sed is not installed. Please install sed and try again."
+		exit 1
+	fi
+	sed -i "5s|.*|$ins_text|" ./wrapper.sh
+	sed -i "6s|.*|$scr_text|" ./wrapper.sh
+else
+	echo "Making this work on MacOS is left as an exercise for the reader. (I am lazy)"
+	echo "Please update the following lines in wrapper.sh:"
+	echo "export TAGS_DIR=\"\$HOME/Tags\""
+	echo "export SCRIPT_DIR=\"$(pwd)\""
+fi
 
 echo "Wrapper file has been updated."
 
@@ -59,6 +70,14 @@ rc_location=${rc_location:-~/.bashrc}  # Use default if no input
 rc_location="${rc_location/#\~/$HOME}"
 
 echo "Sourcing wrapper in $rc_location..."
+if [[ "$rc_location" == *".zshrc" ]]; then
+	echo "Detected zsh configuration file."
+	if ! grep -q "autoload -U bashcompinit && bashcompinit" "$rc_location"; then
+		echo "Adding bashcompinit to $rc_location..."
+		echo "autoload -U bashcompinit && bashcompinit" >> "$rc_location"
+	fi
+fi
+
 echo "source $(pwd)/wrapper.sh" >> "$rc_location"
 echo "Done!"
 echo "Installation complete!"
