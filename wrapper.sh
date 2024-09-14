@@ -48,12 +48,27 @@ function tagger() {
 
 		if [ -z "$tag_name" ]; then
 			echo "First argument must be a non-empty string."
+			return 1
 		fi
 		if [ ! -d "$TAGS_DIR/$tag_name" ]; then
 			echo "The tag '$tag_name' must be an existing file in the '~/Tags' directory."
+			return 1
 		fi
-		if [ ! -e "$destination" ]; then
+		if [ ! -e "$destination" ] || [ "$destination " == ""]; then
 			echo "The destination directory '$destination_dir' does not exist."
+			read -p "Would you like to create the destination directory? (y/n): " choice
+			if [ "$choice" == "y" ]; then
+				mkdir -p "$destination"
+				if [ $? -eq 0 ]; then
+					echo "Destination directory created: $destination"
+				else
+					echo "Error: Failed to create destination directory."
+					return 1
+				fi
+			else
+				echo "Exiting..."
+				return 1
+			fi
 		fi
 
 		ln -s "$(realpath "$destination")" "$TAGS_DIR/$tag_name/$(basename "$destination")"
@@ -61,6 +76,7 @@ function tagger() {
 			echo "Symlink created: $TAGS_DIR/$tag_name/$(basename "$destination") -> $destination"
 		else
 			echo "Error: Failed to create symlink."
+			return 1
 		fi
 	fi
 }
