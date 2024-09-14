@@ -61,7 +61,6 @@ function tagger() {
 			echo "Symlink created: $TAGS_DIR/$tag_name/$(basename "$destination") -> $destination"
 		else
 			echo "Error: Failed to create symlink."
-			exit 1
 		fi
 	fi
 }
