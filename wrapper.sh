@@ -17,7 +17,8 @@ function tagger() {
 		directory=$(cat $PATH_TO_REDIRECT)
 		if [ -d $directory ]; then
 			cd $(realpath "$directory")
-			echo "" > $PATH_TO_REDIRECT 
+			echo "" > $PATH_TO_REDIRECT
+			echo "Navigated to $directory"
 		fi
 	fi
 
