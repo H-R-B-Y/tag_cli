@@ -10,10 +10,10 @@
 		"7":"white"
 	},
 	"NOTE":"These values are used in the code!",
-	"tag_border": 2,
-	"file_border": 2,
-	"tag_text": 6,
-	"file_text": 5,
+	"tag_border": 6,
+	"file_border": 6,
+	"tag_text": 2,
+	"file_text": 2,
 	"tag_highlight": 4,
 	"file_highlight": 4,
 	"arrow": 1
