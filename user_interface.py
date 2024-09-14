@@ -477,6 +477,7 @@ if __name__ == "__main__":
 	args = sys.argv
 	if (len(args) > 1):
 		if (args[1] == "--update"):
+			print("Checking for updates...")
 			check_for_update()
 			exit()
 	try:
