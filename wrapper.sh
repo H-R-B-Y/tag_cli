@@ -29,7 +29,7 @@ function tagger() {
 				ls $TAGS_DIR
 				;;
 			"--update")
-				python3 $PATH_TO_UI --update 3>&1 1>&2 2>&3
+				python3 $PATH_TO_UI --update
 				;;
 			*)
 				echo "need to print usage here!"
