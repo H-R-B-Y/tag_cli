@@ -30,6 +30,7 @@ def check_for_update ():
 			os.system("git add wrapper.sh")
 			os.system("git stash")
 			os.system("git pull")
+			os.system("git add wrapper.sh")
 			os.system("git checkout stash -- wrapper.sh")
 			os.system("git checkout stash -- colours.json")
 			os.system("git stash drop")
