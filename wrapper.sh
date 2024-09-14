@@ -22,7 +22,6 @@ function tagger() {
 				exit 1
 			else
 				echo "" > $PATH_TO_REDIRECT
-				echo "Navigated to $directory"
 			fi
 			
 		fi
