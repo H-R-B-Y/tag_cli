@@ -16,7 +16,7 @@ function tagger() {
 		python3 $PATH_TO_UI 3>&1 1>&2 2>&3
 		directory=$(cat $PATH_TO_REDIRECT)
 		if [ -d $directory ]; then
-			cd "$directory"
+			cd $(realpath "$directory")
 			echo "" > $PATH_TO_REDIRECT 
 		fi
 	fi
