@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-import curses, os,json
+import curses, os, json, sys
 
 # This needs to be documented better please!!!!!!!!!!!!
 # also clean up stuff, all this dynamic calc is stupid T-T
@@ -20,10 +20,27 @@ colours = {
 	"arrow": 1
 }
 
+def check_for_update ():
+	cwd = os.getcwd()
+	os.chdir(os.path.expanduser(os.environ["SCRIPT_DIR"]))
+	stdout = os.system("git fetch")
+	if stdout:
+		print("There are updates available for this script!")
+		if input("Would you like to update? (y/n): ") in ["y","Y","Yes","yes"]:
+			os.system("git stash")
+			os.system("git pull")
+			os.system("git checkout stash -- wrapper.sh")
+			os.system("git checkout stash -- colours.json")
+			os.system("git stash drop")
+	os.chdir(cwd)
+
 def load_colours ():
 	global colours
-	with open(os.path.expanduser(os.environ["SCRIPT_DIR"])+"/colours.json", "r") as f:
-		colours = json.load(f)
+	try:
+		with open(os.path.expanduser(os.environ["SCRIPT_DIR"])+"/colours.json", "r") as f:
+			colours = json.load(f)
+	except Exception as e:
+		print("Error loading colours.json")
 
 class userInterface:
 
@@ -455,9 +472,14 @@ def main (thingy):
 	curses.endwin()
 
 if __name__ == "__main__":
+	args = sys.argv
+	if (len(args) > 1):
+		if (args[1] == "--update"):
+			check_for_update()
+			exit()
 	try:
 		main(curses.initscr())
-	except KeyboardInterrupt as e:
+	except Exception as e:
 		try:
 			curses.endwin()
 		except Exception:
