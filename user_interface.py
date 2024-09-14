@@ -23,14 +23,13 @@ colours = {
 def check_for_update ():
 	cwd = os.getcwd()
 	os.chdir(os.path.expanduser(os.environ["SCRIPT_DIR"]))
-	stdout = os.system("git fetch")
+	stdout = os.system("git fetch --dry-run --verbose")
 	if stdout:
 		print("There are updates available for this script!")
 		if input("Would you like to update? (y/n): ") in ["y","Y","Yes","yes"]:
 			os.system("git add wrapper.sh")
 			os.system("git stash")
 			os.system("git pull")
-			os.system("git add wrapper.sh")
 			os.system("git checkout stash -- wrapper.sh")
 			os.system("git checkout stash -- colours.json")
 			os.system("git stash drop")
