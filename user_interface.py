@@ -169,17 +169,28 @@ class userInterface:
 		return None
 
 	def init_colors(self):
-			# Initialize the default color settings
-			load_colours()
-			curses.start_color()
-			curses.use_default_colors()
-			curses.init_pair(1, curses.COLOR_RED, -1)    # Color 1: Red text
-			curses.init_pair(2, curses.COLOR_GREEN, -1)  # Color 2: Green text
-			curses.init_pair(3, curses.COLOR_YELLOW, -1) # Color 3: Yellow text
-			curses.init_pair(4, curses.COLOR_BLUE, -1)   # Color 4: Blue text
-			curses.init_pair(5, curses.COLOR_MAGENTA, -1) # Color 5: Magenta text
-			curses.init_pair(6, curses.COLOR_CYAN, -1)   # Color 6: Cyan text
-			curses.init_pair(7, curses.COLOR_WHITE, -1)  # Color 7: White text
+		global colours
+		# Initialize the default color settings
+		curses.start_color()
+		self.save_colours = [curses.color_content(i) for i in range(curses.COLORS)]
+		curses.use_default_colors()
+		curses.curs_set(0)
+		curses.start_color()
+		load_colours()
+		curses.init_pair(1, curses.COLOR_RED, -1)    # Color 1: Red text
+		curses.init_pair(2, curses.COLOR_GREEN, -1)  # Color 2: Green text
+		curses.init_pair(3, curses.COLOR_YELLOW, -1) # Color 3: Yellow text
+		curses.init_pair(4, curses.COLOR_BLUE, -1)   # Color 4: Blue text
+		curses.init_pair(5, curses.COLOR_MAGENTA, -1) # Color 5: Magenta text
+		curses.init_pair(6, curses.COLOR_CYAN, -1)   # Color 6: Cyan text
+		curses.init_pair(7, curses.COLOR_WHITE, -1)  # Color 7: White text
+		if "custom_colours" in colours.keys():
+			for custom in colours["custom_colours"]:
+				if (len(custom) != 4):
+					print("Invalid custom colour format")
+					return
+				curses.init_color(custom[0], *custom[1:])
+				curses.init_pair(custom[0], custom[0], -1)
 
 	def init_tags (self):
 		"""
@@ -463,6 +474,10 @@ class userInterface:
 		if (key_event in events.keys()):
 			events[key_event](key_event)
 
+	def restore_colour():
+		for i in range(curses.COLORS):
+			curses.init_color(i, *self.save_colours[i])
+
 	def mainloop (self):
 		"""
 		handle keys is a blocking event, 
@@ -471,6 +486,7 @@ class userInterface:
 		while not self.kill_switch:
 			self.draw_windows()
 			self.handle_key()
+		
 
 
 def main (thingy):
@@ -478,6 +494,7 @@ def main (thingy):
 		f.write("")
 	window = userInterface(thingy)
 	window.mainloop()
+	window.restore_colour()
 	curses.endwin()
 
 if __name__ == "__main__":
